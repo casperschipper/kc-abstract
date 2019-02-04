@@ -1,5 +1,3 @@
-module Main exposing (ContentType(..), FormField, Model, Msg(..), Validity(..), buttonStyleReady, empty, errorStyle, formToInput, init, inputStyle, main, makeField, makeLabelName, update, updateFieldList, validateField, validateModel, view, viewForm, viewInput, viewTextarea, viewValidity)
-
 import Bootstrap.Alert as Alert
 import Bootstrap.Button as Button
 import Bootstrap.CDN as CDN
@@ -12,8 +10,9 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
-
-
+import Http
+import Json.Encode as Encode
+import Debug
 
 -- MAIN
 -- VIEW
@@ -35,11 +34,13 @@ import Html.Events exposing (onClick, onInput)
 --7.
 --Short biography (max. 100 words)
 
-
-main : Program () Model Msg
 main =
-    Browser.sandbox { init = init, update = update, view = view }
-
+  Browser.element
+    { init = init
+    , update = update
+    , subscriptions = subscriptions
+    , view = view
+    }
 
 type ContentType
     = Chars
@@ -103,7 +104,13 @@ type alias Model =
     { fields : List FormField
     , showErrors : Bool
     , ready : Bool
+    , submitted : Bool
+    , result : String
     }
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
 
 
 viewValidity : FormField -> Html Msg
@@ -122,12 +129,12 @@ viewValidity field =
             Alert.simpleSuccess [] [ text "ok" ]
 
 
-init : Model
-init =
-    { fields =
-        [ makeField "Student Name" 4 60 Chars
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ({ fields =
+        [ makeField "Student Name" 4 80 Chars
         , makeField "Student Number" 6 8 Chars
-        , makeField "Main Subject" 3 80 Chars
+        , makeField "Main Subject" 4 80 Chars
         , makeField "Supervisors" 6 80 Chars
         , makeField "Title" 4 70 Chars
         , makeField "Research Question" 6 150 Chars
@@ -136,7 +143,9 @@ init =
         ]
     , showErrors = False   
     , ready = False
-    }
+    , submitted = False
+    , result = "nothing yet"
+    }, Cmd.none)
 
 
 
@@ -146,7 +155,30 @@ init =
 type Msg
     = UpdateField String String
     | Submit
+    | SubmitResult (Result Http.Error String)
+    | Clean
 
+submitAll : Model -> Cmd Msg
+submitAll model =
+    let 
+        json = 
+            encodeFields model.fields
+    in 
+        Http.post {
+            url = "submitForm.php"
+            , body = Http.jsonBody json
+            , expect = Http.expectString SubmitResult
+        }
+    
+encodeFields : List FormField -> Encode.Value
+encodeFields fields =
+    Encode.list encodeField fields
+
+encodeField : FormField -> Encode.Value 
+encodeField field =
+    Encode.object [
+        (field.name, Encode.string field.content)
+    ]
 
 updateFieldList : List FormField -> String -> String -> List FormField
 updateFieldList fieldList fieldName text =
@@ -179,14 +211,25 @@ validateModel model =
     }
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         UpdateField fieldName text ->
-            validateModel { model | fields = updateFieldList model.fields fieldName text }
+            (validateModel { model | fields = updateFieldList model.fields fieldName text }, Cmd.none)
 
         Submit ->
-            validateModel { model | showErrors = True }
+            (validateModel { model | showErrors = True }, submitAll model)
+
+        SubmitResult result -> 
+            case result of
+                Ok message -> 
+                    ({ model | submitted = True }, Cmd.none)
+                Err message ->
+                    ({ model | submitted = False }, Cmd.none)
+
+        Clean ->
+            (model,Cmd.none)
+
 
 
 view : Model -> Html Msg
@@ -196,8 +239,12 @@ view model =
         , Grid.row []
             [ Grid.col [] [ viewForm model ]
             ]
+        , Grid.row []
+            [ Grid.col [] [
+                p [] [text model.result]
+            ]
+            ]
         ]
-
 
 formToInput : Bool -> FormField -> Html Msg
 formToInput showErrors field =
@@ -298,4 +345,8 @@ buttonStyleReady =
 empty : Html msg
 empty =
     text ""
+
+
+
+
 

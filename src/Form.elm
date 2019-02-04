@@ -132,14 +132,22 @@ viewValidity field =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ({ fields =
-        [ makeField "Student Name" 4 80 Chars
-        , makeField "Student Number" 6 8 Chars
-        , makeField "Main Subject" 4 80 Chars
-        , makeField "Supervisors" 6 80 Chars
-        , makeField "Title" 4 70 Chars
-        , makeField "Research Question" 6 150 Chars
-        , makeField "Summary" 150 250 Words
-        , makeField "Short Bio" 50 100 Words
+        [ FormField "Student Name" 4 80 "Casper Schipper" Chars
+        , FormField "Student number" 6 8 "C123456" Chars
+        , FormField "Main Subject" 4 80 "Sonology" Chars
+        , FormField "Supervisors" 6 120 "Supervisor1 Supervisor2" Chars
+        , FormField "Title" 4 200 "My fantastic title yay" Chars 
+        , FormField "Research Question" 6 200 "Research question" Chars 
+        , FormField "Summary" 150 250 "A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish." Words
+        , FormField "Short Bio" 50 100 "A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is n" Words
+        --  makeField "Student Name" 4 80 Chars
+        --, makeField "Student Number" 6 8 Chars
+        --, makeField "Main Subject" 4 80 Chars
+        --, makeField "Supervisors" 6 80 Chars
+        --, makeField "Title" 4 70 Chars
+        --, makeField "Research Question" 6 150 Chars
+        --, makeField "Summary" 150 250 Words
+        --, makeField "Short Bio" 50 100 Words
         ]
     , showErrors = False   
     , ready = False
@@ -161,15 +169,28 @@ type Msg
 submitAll : Model -> Cmd Msg
 submitAll model =
     let 
-        json = 
-            encodeFields model.fields
+        json = encodeFields model.fields
     in 
         Http.post {
-            url = "submitForm.php"
+            url = "submit_kc_form.php"
             , body = Http.jsonBody json
             , expect = Http.expectString SubmitResult
         }
-    
+
+submitAsRequest : Model -> Cmd Msg
+submitAsRequest model =
+    let 
+        json = encodeFields model.fields
+    in
+        Http.request
+                { method = "POST"
+                , headers = []
+                , url = "submit_kc_form.php"
+                , body = Http.jsonBody json
+                , expect = Http.expectString SubmitResult
+                , timeout = Nothing
+                , tracker = Nothing }
+            
 encodeFields : List FormField -> Encode.Value
 encodeFields fields =
     Encode.list encodeField fields
@@ -218,14 +239,29 @@ update msg model =
             (validateModel { model | fields = updateFieldList model.fields fieldName text }, Cmd.none)
 
         Submit ->
-            (validateModel { model | showErrors = True }, submitAll model)
+            (validateModel { model | showErrors = True, result = "something is submitted?" }, submitAsRequest model)
 
         SubmitResult result -> 
             case result of
                 Ok message -> 
-                    ({ model | submitted = True }, Cmd.none)
-                Err message ->
-                    ({ model | submitted = False }, Cmd.none)
+                    ({ model | submitted = True, result = message }, Cmd.none)
+                
+                Err httpError ->
+                    case httpError of
+                        Http.BadUrl url -> 
+                            ({ model | result = "badurl" ++ url }, Cmd.none)
+                        
+                        Http.Timeout ->
+                            ({ model | result = "Timeout" }, Cmd.none)
+
+                        Http.NetworkError ->
+                            ({ model | result = "Connection is dead" }, Cmd.none )
+
+                        Http.BadStatus badStatus ->
+                            ({ model | result = "bad status :" ++ (String.fromInt badStatus) }, Cmd.none)
+
+                        Http.BadBody body ->
+                            ({ model | result = "json body is not ok" ++ body }, Cmd.none)
 
         Clean ->
             (model,Cmd.none)

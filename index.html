@@ -4496,11 +4496,11 @@ function _Browser_load(url)
 	}));
 }
 var author$project$Main$Chars = {$: 'Chars'};
-var author$project$Main$Words = {$: 'Words'};
-var author$project$Main$makeField = F4(
-	function (name, min, max, contentType) {
-		return {content: '', contentType: contentType, max: max, min: min, name: name};
+var author$project$Main$FormField = F5(
+	function (name, min, max, content, contentType) {
+		return {content: content, contentType: contentType, max: max, min: min, name: name};
 	});
+var author$project$Main$Words = {$: 'Words'};
 var elm$core$Basics$False = {$: 'False'};
 var elm$core$Basics$True = {$: 'True'};
 var elm$core$Result$isOk = function (result) {
@@ -4983,14 +4983,14 @@ var author$project$Main$init = function (_n0) {
 		{
 			fields: _List_fromArray(
 				[
-					A4(author$project$Main$makeField, 'Student Name', 4, 80, author$project$Main$Chars),
-					A4(author$project$Main$makeField, 'Student Number', 6, 8, author$project$Main$Chars),
-					A4(author$project$Main$makeField, 'Main Subject', 4, 80, author$project$Main$Chars),
-					A4(author$project$Main$makeField, 'Supervisors', 6, 80, author$project$Main$Chars),
-					A4(author$project$Main$makeField, 'Title', 4, 70, author$project$Main$Chars),
-					A4(author$project$Main$makeField, 'Research Question', 6, 150, author$project$Main$Chars),
-					A4(author$project$Main$makeField, 'Summary', 150, 250, author$project$Main$Words),
-					A4(author$project$Main$makeField, 'Short Bio', 50, 100, author$project$Main$Words)
+					A5(author$project$Main$FormField, 'Student Name', 4, 80, 'Casper Schipper', author$project$Main$Chars),
+					A5(author$project$Main$FormField, 'Student number', 6, 8, 'C123456', author$project$Main$Chars),
+					A5(author$project$Main$FormField, 'Main Subject', 4, 80, 'Sonology', author$project$Main$Chars),
+					A5(author$project$Main$FormField, 'Supervisors', 6, 120, 'Supervisor1 Supervisor2', author$project$Main$Chars),
+					A5(author$project$Main$FormField, 'Title', 4, 200, 'My fantastic title yay', author$project$Main$Chars),
+					A5(author$project$Main$FormField, 'Research Question', 6, 200, 'Research question', author$project$Main$Chars),
+					A5(author$project$Main$FormField, 'Summary', 150, 250, 'A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.', author$project$Main$Words),
+					A5(author$project$Main$FormField, 'Short Bio', 50, 100, 'A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is n', author$project$Main$Words)
 				]),
 			ready: false,
 			result: 'nothing yet',
@@ -5916,17 +5916,17 @@ var elm$http$Http$request = function (r) {
 		elm$http$Http$Request(
 			{allowCookiesFromOtherDomains: false, body: r.body, expect: r.expect, headers: r.headers, method: r.method, timeout: r.timeout, tracker: r.tracker, url: r.url}));
 };
-var elm$http$Http$post = function (r) {
-	return elm$http$Http$request(
-		{body: r.body, expect: r.expect, headers: _List_Nil, method: 'POST', timeout: elm$core$Maybe$Nothing, tracker: elm$core$Maybe$Nothing, url: r.url});
-};
-var author$project$Main$submitAll = function (model) {
+var author$project$Main$submitAsRequest = function (model) {
 	var json = author$project$Main$encodeFields(model.fields);
-	return elm$http$Http$post(
+	return elm$http$Http$request(
 		{
 			body: elm$http$Http$jsonBody(json),
 			expect: elm$http$Http$expectString(author$project$Main$SubmitResult),
-			url: 'submitForm.php'
+			headers: _List_Nil,
+			method: 'POST',
+			timeout: elm$core$Maybe$Nothing,
+			tracker: elm$core$Maybe$Nothing,
+			url: 'submit_kc_form.php'
 		});
 };
 var author$project$Main$updateFieldList = F3(
@@ -6051,8 +6051,8 @@ var author$project$Main$update = F2(
 					author$project$Main$validateModel(
 						_Utils_update(
 							model,
-							{showErrors: true})),
-					author$project$Main$submitAll(model));
+							{result: 'something is submitted?', showErrors: true})),
+					author$project$Main$submitAsRequest(model));
 			case 'SubmitResult':
 				var result = msg.a;
 				if (result.$ === 'Ok') {
@@ -6060,15 +6060,47 @@ var author$project$Main$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{submitted: true}),
+							{result: message, submitted: true}),
 						elm$core$Platform$Cmd$none);
 				} else {
-					var message = result.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{submitted: false}),
-						elm$core$Platform$Cmd$none);
+					var httpError = result.a;
+					switch (httpError.$) {
+						case 'BadUrl':
+							var url = httpError.a;
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{result: 'badurl' + url}),
+								elm$core$Platform$Cmd$none);
+						case 'Timeout':
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{result: 'Timeout'}),
+								elm$core$Platform$Cmd$none);
+						case 'NetworkError':
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{result: 'Connection is dead'}),
+								elm$core$Platform$Cmd$none);
+						case 'BadStatus':
+							var badStatus = httpError.a;
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{
+										result: 'bad status :' + elm$core$String$fromInt(badStatus)
+									}),
+								elm$core$Platform$Cmd$none);
+						default:
+							var body = httpError.a;
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{result: 'json body is not ok' + body}),
+								elm$core$Platform$Cmd$none);
+					}
 				}
 			default:
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);

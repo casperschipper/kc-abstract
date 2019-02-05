@@ -4496,11 +4496,11 @@ function _Browser_load(url)
 	}));
 }
 var author$project$Main$Chars = {$: 'Chars'};
-var author$project$Main$FormField = F5(
-	function (name, min, max, content, contentType) {
-		return {content: content, contentType: contentType, max: max, min: min, name: name};
-	});
 var author$project$Main$Words = {$: 'Words'};
+var author$project$Main$makeField = F4(
+	function (name, min, max, contentType) {
+		return {content: '', contentType: contentType, max: max, min: min, name: name};
+	});
 var elm$core$Basics$False = {$: 'False'};
 var elm$core$Basics$True = {$: 'True'};
 var elm$core$Result$isOk = function (result) {
@@ -4983,17 +4983,17 @@ var author$project$Main$init = function (_n0) {
 		{
 			fields: _List_fromArray(
 				[
-					A5(author$project$Main$FormField, 'Student Name', 4, 80, 'Casper Schipper', author$project$Main$Chars),
-					A5(author$project$Main$FormField, 'Student number', 6, 8, 'C123456', author$project$Main$Chars),
-					A5(author$project$Main$FormField, 'Main Subject', 4, 80, 'Sonology', author$project$Main$Chars),
-					A5(author$project$Main$FormField, 'Supervisors', 6, 120, 'Supervisor1 Supervisor2', author$project$Main$Chars),
-					A5(author$project$Main$FormField, 'Title', 4, 200, 'My fantastic title yay', author$project$Main$Chars),
-					A5(author$project$Main$FormField, 'Research Question', 6, 200, 'Research question', author$project$Main$Chars),
-					A5(author$project$Main$FormField, 'Summary', 150, 250, 'A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.', author$project$Main$Words),
-					A5(author$project$Main$FormField, 'Short Bio', 50, 100, 'A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is n', author$project$Main$Words)
+					A4(author$project$Main$makeField, 'Student Name', 4, 80, author$project$Main$Chars),
+					A4(author$project$Main$makeField, 'Student Number', 6, 8, author$project$Main$Chars),
+					A4(author$project$Main$makeField, 'Main Subject', 4, 80, author$project$Main$Chars),
+					A4(author$project$Main$makeField, 'Supervisors', 6, 120, author$project$Main$Chars),
+					A4(author$project$Main$makeField, 'Title', 4, 120, author$project$Main$Chars),
+					A4(author$project$Main$makeField, 'Research Question', 6, 150, author$project$Main$Chars),
+					A4(author$project$Main$makeField, 'Summary', 125, 250, author$project$Main$Words),
+					A4(author$project$Main$makeField, 'Short Bio', 50, 100, author$project$Main$Words)
 				]),
 			ready: false,
-			result: 'nothing yet',
+			result: 'you need to fill in all fields correctly before you can submit',
 			showErrors: false,
 			submitted: false
 		},
@@ -5007,6 +5007,81 @@ var author$project$Main$subscriptions = function (model) {
 var author$project$Main$SubmitResult = function (a) {
 	return {$: 'SubmitResult', a: a};
 };
+var elm$json$Json$Encode$string = _Json_wrap;
+var author$project$Main$encodeField = function (field) {
+	return _Utils_Tuple2(
+		field.name,
+		elm$json$Json$Encode$string(field.content));
+};
+var elm$core$List$foldrHelper = F4(
+	function (fn, acc, ctr, ls) {
+		if (!ls.b) {
+			return acc;
+		} else {
+			var a = ls.a;
+			var r1 = ls.b;
+			if (!r1.b) {
+				return A2(fn, a, acc);
+			} else {
+				var b = r1.a;
+				var r2 = r1.b;
+				if (!r2.b) {
+					return A2(
+						fn,
+						a,
+						A2(fn, b, acc));
+				} else {
+					var c = r2.a;
+					var r3 = r2.b;
+					if (!r3.b) {
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(fn, c, acc)));
+					} else {
+						var d = r3.a;
+						var r4 = r3.b;
+						var res = (ctr > 500) ? A3(
+							elm$core$List$foldl,
+							fn,
+							acc,
+							elm$core$List$reverse(r4)) : A4(elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
+						return A2(
+							fn,
+							a,
+							A2(
+								fn,
+								b,
+								A2(
+									fn,
+									c,
+									A2(fn, d, res))));
+					}
+				}
+			}
+		}
+	});
+var elm$core$List$foldr = F3(
+	function (fn, acc, ls) {
+		return A4(elm$core$List$foldrHelper, fn, acc, 0, ls);
+	});
+var elm$core$List$map = F2(
+	function (f, xs) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A2(
+						elm$core$List$cons,
+						f(x),
+						acc);
+				}),
+			_List_Nil,
+			xs);
+	});
 var elm$json$Json$Encode$object = function (pairs) {
 	return _Json_wrap(
 		A3(
@@ -5020,27 +5095,9 @@ var elm$json$Json$Encode$object = function (pairs) {
 			_Json_emptyObject(_Utils_Tuple0),
 			pairs));
 };
-var elm$json$Json$Encode$string = _Json_wrap;
-var author$project$Main$encodeField = function (field) {
-	return elm$json$Json$Encode$object(
-		_List_fromArray(
-			[
-				_Utils_Tuple2(
-				field.name,
-				elm$json$Json$Encode$string(field.content))
-			]));
-};
-var elm$json$Json$Encode$list = F2(
-	function (func, entries) {
-		return _Json_wrap(
-			A3(
-				elm$core$List$foldl,
-				_Json_addEntry(func),
-				_Json_emptyArray(_Utils_Tuple0),
-				entries));
-	});
 var author$project$Main$encodeFields = function (fields) {
-	return A2(elm$json$Json$Encode$list, author$project$Main$encodeField, fields);
+	return elm$json$Json$Encode$object(
+		A2(elm$core$List$map, author$project$Main$encodeField, fields));
 };
 var elm$core$Basics$composeR = F3(
 	function (f, g, x) {
@@ -5752,61 +5809,6 @@ var elm$http$Http$onEffects = F4(
 			},
 			A3(elm$http$Http$updateReqs, router, cmds, state.reqs));
 	});
-var elm$core$List$foldrHelper = F4(
-	function (fn, acc, ctr, ls) {
-		if (!ls.b) {
-			return acc;
-		} else {
-			var a = ls.a;
-			var r1 = ls.b;
-			if (!r1.b) {
-				return A2(fn, a, acc);
-			} else {
-				var b = r1.a;
-				var r2 = r1.b;
-				if (!r2.b) {
-					return A2(
-						fn,
-						a,
-						A2(fn, b, acc));
-				} else {
-					var c = r2.a;
-					var r3 = r2.b;
-					if (!r3.b) {
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(fn, c, acc)));
-					} else {
-						var d = r3.a;
-						var r4 = r3.b;
-						var res = (ctr > 500) ? A3(
-							elm$core$List$foldl,
-							fn,
-							acc,
-							elm$core$List$reverse(r4)) : A4(elm$core$List$foldrHelper, fn, acc, ctr + 1, r4);
-						return A2(
-							fn,
-							a,
-							A2(
-								fn,
-								b,
-								A2(
-									fn,
-									c,
-									A2(fn, d, res))));
-					}
-				}
-			}
-		}
-	});
-var elm$core$List$foldr = F3(
-	function (fn, acc, ls) {
-		return A4(elm$core$List$foldrHelper, fn, acc, 0, ls);
-	});
 var elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
 		var _n0 = f(mx);
@@ -5948,9 +5950,18 @@ var author$project$Main$updateFieldList = F3(
 		}
 	});
 var author$project$Main$Empty = {$: 'Empty'};
-var author$project$Main$TooLong = {$: 'TooLong'};
-var author$project$Main$TooShort = {$: 'TooShort'};
+var author$project$Main$TooLong = F2(
+	function (a, b) {
+		return {$: 'TooLong', a: a, b: b};
+	});
+var author$project$Main$TooShort = F2(
+	function (a, b) {
+		return {$: 'TooShort', a: a, b: b};
+	});
 var author$project$Main$Valid = {$: 'Valid'};
+var elm$core$Basics$negate = function (n) {
+	return -n;
+};
 var elm$core$String$length = _String_length;
 var elm$core$String$words = _String_words;
 var author$project$Main$validateField = function (field) {
@@ -5960,13 +5971,13 @@ var author$project$Main$validateField = function (field) {
 			return elm$core$String$length;
 		} else {
 			return function (s) {
-				return elm$core$List$length(
+				return (-1) + elm$core$List$length(
 					elm$core$String$words(s));
 			};
 		}
 	}();
 	var n = counter(field.content);
-	return (!n) ? author$project$Main$Empty : ((_Utils_cmp(n, field.min) < 0) ? author$project$Main$TooShort : ((_Utils_cmp(n, field.max) > 0) ? author$project$Main$TooLong : author$project$Main$Valid));
+	return (!n) ? author$project$Main$Empty : ((_Utils_cmp(n, field.min) < 0) ? A2(author$project$Main$TooShort, n, field.min) : ((_Utils_cmp(n, field.max) > 0) ? A2(author$project$Main$TooLong, n, field.max) : author$project$Main$Valid));
 };
 var elm$core$Basics$composeL = F3(
 	function (g, f, x) {
@@ -6002,20 +6013,6 @@ var elm$core$List$all = F2(
 			A2(elm$core$Basics$composeL, elm$core$Basics$not, isOkay),
 			list);
 	});
-var elm$core$List$map = F2(
-	function (f, xs) {
-		return A3(
-			elm$core$List$foldr,
-			F2(
-				function (x, acc) {
-					return A2(
-						elm$core$List$cons,
-						f(x),
-						acc);
-				}),
-			_List_Nil,
-			xs);
-	});
 var author$project$Main$validateModel = function (model) {
 	return _Utils_update(
 		model,
@@ -6047,12 +6044,13 @@ var author$project$Main$update = F2(
 							})),
 					elm$core$Platform$Cmd$none);
 			case 'Submit':
+				var command = model.ready ? author$project$Main$submitAsRequest(model) : elm$core$Platform$Cmd$none;
 				return _Utils_Tuple2(
 					author$project$Main$validateModel(
 						_Utils_update(
 							model,
-							{result: 'something is submitted?', showErrors: true})),
-					author$project$Main$submitAsRequest(model));
+							{showErrors: true})),
+					command);
 			case 'SubmitResult':
 				var result = msg.a;
 				if (result.$ === 'Ok') {
@@ -6060,7 +6058,7 @@ var author$project$Main$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{result: message, submitted: true}),
+							{result: 'Thank you!', submitted: true}),
 						elm$core$Platform$Cmd$none);
 				} else {
 					var httpError = result.a;
@@ -6070,19 +6068,19 @@ var author$project$Main$update = F2(
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{result: 'badurl' + url}),
+									{result: 'badurl -> contact Casper' + url}),
 								elm$core$Platform$Cmd$none);
 						case 'Timeout':
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{result: 'Timeout'}),
+									{result: 'timeout -> contact Casper'}),
 								elm$core$Platform$Cmd$none);
 						case 'NetworkError':
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{result: 'Connection is dead'}),
+									{result: 'connection -> contact Casper'}),
 								elm$core$Platform$Cmd$none);
 						case 'BadStatus':
 							var badStatus = httpError.a;
@@ -6090,7 +6088,7 @@ var author$project$Main$update = F2(
 								_Utils_update(
 									model,
 									{
-										result: 'bad status :' + elm$core$String$fromInt(badStatus)
+										result: 'bad status -> contact Casper' + elm$core$String$fromInt(badStatus)
 									}),
 								elm$core$Platform$Cmd$none);
 						default:
@@ -6098,7 +6096,7 @@ var author$project$Main$update = F2(
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{result: 'json body is not ok' + body}),
+									{result: 'json body is not ok -> contact Casper' + body}),
 								elm$core$Platform$Cmd$none);
 					}
 				}
@@ -6925,20 +6923,26 @@ var author$project$Main$viewValidity = function (field) {
 						elm$html$Html$text('this field is required')
 					]));
 		case 'TooShort':
+			var n = _n0.a;
+			var min = _n0.b;
 			return A2(
 				rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning,
 				_List_Nil,
 				_List_fromArray(
 					[
-						elm$html$Html$text(field.name + ' is too short')
+						elm$html$Html$text(
+						field.name + ('too short, current count ' + (elm$core$String$fromInt(n) + (', minimum is ' + elm$core$String$fromInt(min)))))
 					]));
 		case 'TooLong':
+			var n = _n0.a;
+			var max = _n0.b;
 			return A2(
 				rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning,
 				_List_Nil,
 				_List_fromArray(
 					[
-						elm$html$Html$text(field.name + ' is too long')
+						elm$html$Html$text(
+						field.name + ('too long, current count ' + (elm$core$String$fromInt(n) + (', maximum is ' + elm$core$String$fromInt(max)))))
 					]));
 		default:
 			return A2(
@@ -7089,15 +7093,6 @@ var rundis$elm_bootstrap$Bootstrap$Button$button = F2(
 			rundis$elm_bootstrap$Bootstrap$Internal$Button$buttonAttributes(options),
 			children);
 	});
-var rundis$elm_bootstrap$Bootstrap$Internal$Button$Coloring = function (a) {
-	return {$: 'Coloring', a: a};
-};
-var rundis$elm_bootstrap$Bootstrap$Internal$Button$Danger = {$: 'Danger'};
-var rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled = function (a) {
-	return {$: 'Roled', a: a};
-};
-var rundis$elm_bootstrap$Bootstrap$Button$danger = rundis$elm_bootstrap$Bootstrap$Internal$Button$Coloring(
-	rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled(rundis$elm_bootstrap$Bootstrap$Internal$Button$Danger));
 var rundis$elm_bootstrap$Bootstrap$Internal$Button$Disabled = function (a) {
 	return {$: 'Disabled', a: a};
 };
@@ -7131,7 +7126,13 @@ var rundis$elm_bootstrap$Bootstrap$Button$onClick = function (message) {
 					_Utils_Tuple2(message, true)))
 			]));
 };
+var rundis$elm_bootstrap$Bootstrap$Internal$Button$Coloring = function (a) {
+	return {$: 'Coloring', a: a};
+};
 var rundis$elm_bootstrap$Bootstrap$Internal$Button$Primary = {$: 'Primary'};
+var rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled = function (a) {
+	return {$: 'Roled', a: a};
+};
 var rundis$elm_bootstrap$Bootstrap$Button$primary = rundis$elm_bootstrap$Bootstrap$Internal$Button$Coloring(
 	rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled(rundis$elm_bootstrap$Bootstrap$Internal$Button$Primary));
 var elm$html$Html$form = _VirtualDom_node('form');
@@ -7168,14 +7169,14 @@ var author$project$Main$viewForm = function (model) {
 						rundis$elm_bootstrap$Bootstrap$Button$button,
 						_List_fromArray(
 							[
-								model.ready ? rundis$elm_bootstrap$Bootstrap$Button$primary : rundis$elm_bootstrap$Bootstrap$Button$danger,
+								model.ready ? rundis$elm_bootstrap$Bootstrap$Button$primary : rundis$elm_bootstrap$Bootstrap$Button$primary,
 								rundis$elm_bootstrap$Bootstrap$Button$onClick(author$project$Main$Submit),
-								rundis$elm_bootstrap$Bootstrap$Button$disabled(false)
+								rundis$elm_bootstrap$Bootstrap$Button$disabled(model.submitted)
 							]),
 						_List_fromArray(
 							[
 								elm$html$Html$text(
-								model.ready ? 'Submit' : 'Show missing fields')
+								model.ready ? 'Submit' : 'Show hints')
 							]))
 					]))));
 };
@@ -8022,9 +8023,13 @@ var rundis$elm_bootstrap$Bootstrap$Grid$row = F2(
 			A2(elm$core$List$map, rundis$elm_bootstrap$Bootstrap$Grid$renderCol, cols));
 	});
 var author$project$Main$view = function (model) {
+	var statusText = (!model.ready) ? model.result : (model.submitted ? 'Your abstract has been received, thank you!' : 'please submit');
 	return A2(
 		rundis$elm_bootstrap$Bootstrap$Grid$container,
-		_List_Nil,
+		_List_fromArray(
+			[
+				A2(elm$html$Html$Attributes$style, 'margin-top', '100px')
+			]),
 		_List_fromArray(
 			[
 				rundis$elm_bootstrap$Bootstrap$CDN$stylesheet,
@@ -8056,7 +8061,7 @@ var author$project$Main$view = function (model) {
 								_List_Nil,
 								_List_fromArray(
 									[
-										elm$html$Html$text(model.result)
+										elm$html$Html$text(statusText)
 									]))
 							]))
 					]))

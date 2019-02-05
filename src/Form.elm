@@ -68,8 +68,8 @@ makeField name min max contentType =
 type Validity
     = Empty
     | Valid
-    | TooLong
-    | TooShort
+    | TooLong Int Int
+    | TooShort Int Int
 
 
 validateField : FormField -> Validity
@@ -81,7 +81,7 @@ validateField field =
                     String.length
 
                 Words ->
-                    \s -> String.words s |> List.length
+                    \s -> String.words s |> List.length |> (+) -1
     in
     let
         n =
@@ -91,10 +91,10 @@ validateField field =
         Empty
 
     else if n < field.min then
-        TooShort
+        TooShort n field.min
 
     else if n > field.max then
-        TooLong
+        TooLong n field.max
 
     else
         Valid
@@ -119,11 +119,11 @@ viewValidity field =
         Empty ->
             Alert.simpleWarning [] [ text "this field is required" ]
 
-        TooShort ->
-            Alert.simpleWarning [] [ text (field.name ++ " is too short") ]
+        TooShort n min ->
+            Alert.simpleWarning [] [ text (field.name ++ "too short, current count " ++ String.fromInt n ++ ", minimum is " ++ (String.fromInt min)) ]
 
-        TooLong ->
-            Alert.simpleWarning [] [ text (field.name ++ " is too long") ]
+        TooLong n max->
+            Alert.simpleWarning [] [ text (field.name ++ "too long, current count " ++ String.fromInt n ++ ", maximum is " ++ String.fromInt max) ]
 
         Valid ->
             Alert.simpleSuccess [] [ text "ok" ]
@@ -132,27 +132,27 @@ viewValidity field =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ({ fields =
-        [ FormField "Student Name" 4 80 "Casper Schipper" Chars
-        , FormField "Student number" 6 8 "C123456" Chars
-        , FormField "Main Subject" 4 80 "Sonology" Chars
-        , FormField "Supervisors" 6 120 "Supervisor1 Supervisor2" Chars
-        , FormField "Title" 4 200 "My fantastic title yay" Chars 
-        , FormField "Research Question" 6 200 "Research question" Chars 
-        , FormField "Summary" 150 250 "A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish." Words
-        , FormField "Short Bio" 50 100 "A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is n" Words
-        --  makeField "Student Name" 4 80 Chars
-        --, makeField "Student Number" 6 8 Chars
-        --, makeField "Main Subject" 4 80 Chars
-        --, makeField "Supervisors" 6 80 Chars
-        --, makeField "Title" 4 70 Chars
-        --, makeField "Research Question" 6 150 Chars
-        --, makeField "Summary" 150 250 Words
-        --, makeField "Short Bio" 50 100 Words
+        --[ FormField "Student Name" 4 80 "Casper Schipper" Chars
+        --, FormField "Student Number" 6 8 "C123456" Chars
+        --, FormField "Main Subject" 4 80 "Sonology" Chars
+        --, FormField "Supervisors" 6 120 "Supervisor1 Supervisor2" Chars
+        --, FormField "Title" 4 200 "My fantastic title yay" Chars 
+        --, FormField "Research Question" 6 200 "Research question" Chars 
+        --, FormField "Summary" 150 250 "A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish." Words
+        --, FormField "Short Bio" 50 100 "A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is n" Words
+        [ makeField "Student Name" 4 80 Chars
+        , makeField "Student Number" 6 8 Chars
+        , makeField "Main Subject" 4 80 Chars
+        , makeField "Supervisors" 6 120 Chars
+        , makeField "Title" 4 120 Chars
+        , makeField "Research Question" 6 150 Chars
+        , makeField "Summary" 125 250 Words
+        , makeField "Short Bio" 50 100 Words
         ]
     , showErrors = False   
     , ready = False
     , submitted = False
-    , result = "nothing yet"
+    , result = "you need to fill in all fields correctly before you can submit"
     }, Cmd.none)
 
 
@@ -193,13 +193,11 @@ submitAsRequest model =
             
 encodeFields : List FormField -> Encode.Value
 encodeFields fields =
-    Encode.list encodeField fields
+    Encode.object <| List.map encodeField fields
 
-encodeField : FormField -> Encode.Value 
+encodeField : FormField -> (String, Encode.Value)
 encodeField field =
-    Encode.object [
-        (field.name, Encode.string field.content)
-    ]
+    (field.name, Encode.string field.content)
 
 updateFieldList : List FormField -> String -> String -> List FormField
 updateFieldList fieldList fieldName text =
@@ -239,29 +237,36 @@ update msg model =
             (validateModel { model | fields = updateFieldList model.fields fieldName text }, Cmd.none)
 
         Submit ->
-            (validateModel { model | showErrors = True, result = "something is submitted?" }, submitAsRequest model)
+            let 
+                command = 
+                    if model.ready then
+                        submitAsRequest model
+                    else
+                        Cmd.none
+            in
+            (validateModel { model | showErrors = True }, command)
 
         SubmitResult result -> 
             case result of
                 Ok message -> 
-                    ({ model | submitted = True, result = message }, Cmd.none)
+                    ({ model | submitted = True, result = "Thank you!" }, Cmd.none)
                 
                 Err httpError ->
                     case httpError of
                         Http.BadUrl url -> 
-                            ({ model | result = "badurl" ++ url }, Cmd.none)
+                            ({ model | result = "badurl -> contact Casper" ++ url }, Cmd.none)
                         
                         Http.Timeout ->
-                            ({ model | result = "Timeout" }, Cmd.none)
+                            ({ model | result = "timeout -> contact Casper" }, Cmd.none)
 
                         Http.NetworkError ->
-                            ({ model | result = "Connection is dead" }, Cmd.none )
+                            ({ model | result = "connection -> contact Casper" }, Cmd.none )
 
                         Http.BadStatus badStatus ->
-                            ({ model | result = "bad status :" ++ (String.fromInt badStatus) }, Cmd.none)
+                            ({ model | result = "bad status -> contact Casper" ++ (String.fromInt badStatus) }, Cmd.none)
 
                         Http.BadBody body ->
-                            ({ model | result = "json body is not ok" ++ body }, Cmd.none)
+                            ({ model | result = "json body is not ok -> contact Casper" ++ body }, Cmd.none)
 
         Clean ->
             (model,Cmd.none)
@@ -270,17 +275,25 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    Grid.container []
-        [ CDN.stylesheet -- creates an inline style node with the Bootstrap CSS
-        , Grid.row []
-            [ Grid.col [] [ viewForm model ]
+    let 
+        statusText = 
+            if (not model.ready) then 
+                model.result 
+            else if model.submitted then
+                "Your abstract has been received, thank you!" 
+            else "All good, please submit"
+    in 
+        Grid.container [style "margin-top" "100px"]
+            [ CDN.stylesheet -- creates an inline style node with the Bootstrap CSS
+            , Grid.row []
+                [ Grid.col [] [ viewForm model ]
+                ]
+            , Grid.row []
+                [ Grid.col [] [
+                    p [] [text statusText]
+                ]
+                ]
             ]
-        , Grid.row []
-            [ Grid.col [] [
-                p [] [text model.result]
-            ]
-            ]
-        ]
 
 formToInput : Bool -> FormField -> Html Msg
 formToInput showErrors field =
@@ -307,16 +320,16 @@ viewForm model =
                         Button.primary
 
                       else
-                        Button.danger
+                        Button.primary
                     , Button.onClick Submit
-                    , Button.disabled False
+                    , Button.disabled model.submitted
                     ]
                     [ text
                         (if model.ready then
                             "Submit"
 
                          else
-                            "Show missing fields"
+                            "Show hints"
                         )
                     ]
                 ]

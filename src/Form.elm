@@ -213,20 +213,31 @@ updateFieldList fieldList fieldName text =
             []
 
 
+onlyWordFields : List FormField -> List FormField
+onlyWordFields fields =
+    List.filter (\field ->
+        case field.contentType of
+            Words -> True
+
+            Chars -> False
+    )
+
+validityToBool : Validity -> Bool 
+validityToBool val =
+    case val of
+        Valid -> True
+
+        _ -> False
+
+
 validateModel : Model -> Model
 validateModel model =
     { model
         | ready =
             List.map validateField model.fields
-                |> List.all
-                    (\val ->
-                        case val of
-                            Valid ->
-                                True
-
-                            _ ->
-                                False
-                    )
+                |> List.map validityToBool |> List.all
+                    
+        , showErrors = model.fields |> onlyWordFields |> (List.map validateField) |> List.map validityToBool |> List.all
     }
 
 
@@ -328,7 +339,9 @@ viewForm model =
                         (if model.ready then
                             "Submit"
 
-                         else
+                        else if model.showErrors then
+                            "Submit"
+                        else 
                             "Show hints"
                         )
                     ]

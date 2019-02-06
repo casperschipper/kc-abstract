@@ -53,6 +53,7 @@ type alias FormField =
     , max : Int
     , content : String
     , contentType : ContentType
+    , validity : Validity
     }
 
 
@@ -63,6 +64,7 @@ makeField name min max contentType =
     , max = max
     , content = ""
     , contentType = contentType
+    , validity = Pristine
     }
 
 type Validity
@@ -70,9 +72,10 @@ type Validity
     | Valid
     | TooLong Int Int
     | TooShort Int Int
+    | Pristine
 
 
-validateField : FormField -> Validity
+validateField : FormField -> FormField
 validateField field =
     let
         counter =
@@ -88,16 +91,19 @@ validateField field =
             counter field.content
     in
     if n == 0 then
-        Empty
+        case field.validity of
+            Pristine -> field
+
+            _ -> {field | validity = Empty}
 
     else if n < field.min then
-        TooShort n field.min
+        {field | validity = TooShort n field.min}
 
     else if n > field.max then
-        TooLong n field.max
+        {field | validity = TooLong n field.max}
 
     else
-        Valid
+        {field | validity = Valid}
 
 
 type alias Model =
@@ -115,7 +121,9 @@ subscriptions model =
 
 viewValidity : FormField -> Html Msg
 viewValidity field =
-    case validateField field of
+    case field.validity of
+        Pristine ->
+            div [] []
         Empty ->
             Alert.simpleWarning [] [ text "this field is required" ]
 
@@ -204,7 +212,7 @@ updateFieldList fieldList fieldName text =
     case fieldList of
         field :: rest ->
             if field.name == fieldName then
-                { field | content = text } :: rest
+                validateField { field | content = text } :: rest
 
             else
                 field :: updateFieldList rest fieldName text
@@ -220,11 +228,11 @@ onlyWordFields fields =
             Words -> True
 
             Chars -> False
-    )
+    ) fields
 
-validityToBool : Validity -> Bool 
-validityToBool val =
-    case val of
+isValid : FormField -> Bool 
+isValid field =
+    case field.validity of
         Valid -> True
 
         _ -> False
@@ -233,11 +241,9 @@ validityToBool val =
 validateModel : Model -> Model
 validateModel model =
     { model
-        | ready =
-            List.map validateField model.fields
-                |> List.map validityToBool |> List.all
+        | ready = model.fields |> List.all isValid
                     
-        , showErrors = model.fields |> onlyWordFields |> (List.map validateField) |> List.map validityToBool |> List.all
+        , showErrors = not (model.fields |> onlyWordFields |> List.all isValid)
     }
 
 

@@ -337,16 +337,11 @@ viewForm model =
                         Button.primary
 
                       else
-                        Button.primary
+                        Button.secondary
                     , Button.onClick Submit
                     , Button.disabled (model.submitted || not model.ready)
                     ]
-                    [ text
-                        (if model.ready then
-                            "Submit"
-                        else
-                            "")
-                    ]
+                    [ text "submit"]
                 ]
             )
         )

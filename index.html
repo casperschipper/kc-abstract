@@ -4497,9 +4497,10 @@ function _Browser_load(url)
 }
 var author$project$Main$Chars = {$: 'Chars'};
 var author$project$Main$Words = {$: 'Words'};
+var author$project$Main$Pristine = {$: 'Pristine'};
 var author$project$Main$makeField = F4(
 	function (name, min, max, contentType) {
-		return {content: '', contentType: contentType, max: max, min: min, name: name};
+		return {content: '', contentType: contentType, max: max, min: min, name: name, validity: author$project$Main$Pristine};
 	});
 var elm$core$Basics$False = {$: 'False'};
 var elm$core$Basics$True = {$: 'True'};
@@ -5931,24 +5932,6 @@ var author$project$Main$submitAsRequest = function (model) {
 			url: 'submit_kc_form.php'
 		});
 };
-var author$project$Main$updateFieldList = F3(
-	function (fieldList, fieldName, text) {
-		if (fieldList.b) {
-			var field = fieldList.a;
-			var rest = fieldList.b;
-			return _Utils_eq(field.name, fieldName) ? A2(
-				elm$core$List$cons,
-				_Utils_update(
-					field,
-					{content: text}),
-				rest) : A2(
-				elm$core$List$cons,
-				field,
-				A3(author$project$Main$updateFieldList, rest, fieldName, text));
-		} else {
-			return _List_Nil;
-		}
-	});
 var author$project$Main$Empty = {$: 'Empty'};
 var author$project$Main$TooLong = F2(
 	function (a, b) {
@@ -5966,8 +5949,8 @@ var elm$core$String$length = _String_length;
 var elm$core$String$words = _String_words;
 var author$project$Main$validateField = function (field) {
 	var counter = function () {
-		var _n0 = field.contentType;
-		if (_n0.$ === 'Chars') {
+		var _n1 = field.contentType;
+		if (_n1.$ === 'Chars') {
 			return elm$core$String$length;
 		} else {
 			return function (s) {
@@ -5977,14 +5960,94 @@ var author$project$Main$validateField = function (field) {
 		}
 	}();
 	var n = counter(field.content);
-	return (!n) ? author$project$Main$Empty : ((_Utils_cmp(n, field.min) < 0) ? A2(author$project$Main$TooShort, n, field.min) : ((_Utils_cmp(n, field.max) > 0) ? A2(author$project$Main$TooLong, n, field.max) : author$project$Main$Valid));
+	if (!n) {
+		var _n0 = field.validity;
+		if (_n0.$ === 'Pristine') {
+			return field;
+		} else {
+			return _Utils_update(
+				field,
+				{validity: author$project$Main$Empty});
+		}
+	} else {
+		if (_Utils_cmp(n, field.min) < 0) {
+			return _Utils_update(
+				field,
+				{
+					validity: A2(author$project$Main$TooShort, n, field.min)
+				});
+		} else {
+			if (_Utils_cmp(n, field.max) > 0) {
+				return _Utils_update(
+					field,
+					{
+						validity: A2(author$project$Main$TooLong, n, field.max)
+					});
+			} else {
+				return _Utils_update(
+					field,
+					{validity: author$project$Main$Valid});
+			}
+		}
+	}
 };
+var author$project$Main$updateFieldList = F3(
+	function (fieldList, fieldName, text) {
+		if (fieldList.b) {
+			var field = fieldList.a;
+			var rest = fieldList.b;
+			return _Utils_eq(field.name, fieldName) ? A2(
+				elm$core$List$cons,
+				author$project$Main$validateField(
+					_Utils_update(
+						field,
+						{content: text})),
+				rest) : A2(
+				elm$core$List$cons,
+				field,
+				A3(author$project$Main$updateFieldList, rest, fieldName, text));
+		} else {
+			return _List_Nil;
+		}
+	});
+var author$project$Main$isValid = function (field) {
+	var _n0 = field.validity;
+	if (_n0.$ === 'Valid') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2(elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var author$project$Main$onlyWordFields = function (fields) {
+	return A2(
+		elm$core$List$filter,
+		function (field) {
+			var _n0 = field.contentType;
+			if (_n0.$ === 'Words') {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		fields);
+};
+var elm$core$Basics$not = _Basics_not;
 var elm$core$Basics$composeL = F3(
 	function (g, f, x) {
 		return g(
 			f(x));
 	});
-var elm$core$Basics$not = _Basics_not;
 var elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -6017,16 +6080,11 @@ var author$project$Main$validateModel = function (model) {
 	return _Utils_update(
 		model,
 		{
-			ready: A2(
+			ready: A2(elm$core$List$all, author$project$Main$isValid, model.fields),
+			showErrors: !A2(
 				elm$core$List$all,
-				function (val) {
-					if (val.$ === 'Valid') {
-						return true;
-					} else {
-						return false;
-					}
-				},
-				A2(elm$core$List$map, author$project$Main$validateField, model.fields))
+				author$project$Main$isValid,
+				author$project$Main$onlyWordFields(model.fields))
 		});
 };
 var author$project$Main$update = F2(
@@ -6788,17 +6846,6 @@ var elm$core$List$append = F2(
 var elm$core$List$concat = function (lists) {
 	return A3(elm$core$List$foldr, elm$core$List$append, _List_Nil, lists);
 };
-var elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2(elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
 var elm$core$Tuple$second = function (_n0) {
 	var y = _n0.b;
 	return y;
@@ -6912,8 +6959,10 @@ var rundis$elm_bootstrap$Bootstrap$Alert$simpleSuccess = rundis$elm_bootstrap$Bo
 var rundis$elm_bootstrap$Bootstrap$Internal$Role$Warning = {$: 'Warning'};
 var rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning = rundis$elm_bootstrap$Bootstrap$Alert$simple(rundis$elm_bootstrap$Bootstrap$Internal$Role$Warning);
 var author$project$Main$viewValidity = function (field) {
-	var _n0 = author$project$Main$validateField(field);
+	var _n0 = field.validity;
 	switch (_n0.$) {
+		case 'Pristine':
+			return A2(elm$html$Html$div, _List_Nil, _List_Nil);
 		case 'Empty':
 			return A2(
 				rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning,
@@ -7135,6 +7184,9 @@ var rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled = function (a) {
 };
 var rundis$elm_bootstrap$Bootstrap$Button$primary = rundis$elm_bootstrap$Bootstrap$Internal$Button$Coloring(
 	rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled(rundis$elm_bootstrap$Bootstrap$Internal$Button$Primary));
+var rundis$elm_bootstrap$Bootstrap$Internal$Button$Secondary = {$: 'Secondary'};
+var rundis$elm_bootstrap$Bootstrap$Button$secondary = rundis$elm_bootstrap$Bootstrap$Internal$Button$Coloring(
+	rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled(rundis$elm_bootstrap$Bootstrap$Internal$Button$Secondary));
 var elm$html$Html$form = _VirtualDom_node('form');
 var rundis$elm_bootstrap$Bootstrap$Form$form = F2(
 	function (attributes, children) {
@@ -7169,14 +7221,13 @@ var author$project$Main$viewForm = function (model) {
 						rundis$elm_bootstrap$Bootstrap$Button$button,
 						_List_fromArray(
 							[
-								model.ready ? rundis$elm_bootstrap$Bootstrap$Button$primary : rundis$elm_bootstrap$Bootstrap$Button$primary,
+								model.ready ? rundis$elm_bootstrap$Bootstrap$Button$primary : rundis$elm_bootstrap$Bootstrap$Button$secondary,
 								rundis$elm_bootstrap$Bootstrap$Button$onClick(author$project$Main$Submit),
-								rundis$elm_bootstrap$Bootstrap$Button$disabled(model.submitted)
+								rundis$elm_bootstrap$Bootstrap$Button$disabled(model.submitted || (!model.ready))
 							]),
 						_List_fromArray(
 							[
-								elm$html$Html$text(
-								model.ready ? 'Submit' : 'Show hints')
+								elm$html$Html$text('submit')
 							]))
 					]))));
 };
@@ -8023,7 +8074,7 @@ var rundis$elm_bootstrap$Bootstrap$Grid$row = F2(
 			A2(elm$core$List$map, rundis$elm_bootstrap$Bootstrap$Grid$renderCol, cols));
 	});
 var author$project$Main$view = function (model) {
-	var statusText = (!model.ready) ? model.result : (model.submitted ? 'Your abstract has been received, thank you!' : 'please submit');
+	var statusText = (!model.ready) ? model.result : (model.submitted ? 'Your abstract has been received, thank you!' : 'All good, please submit');
 	return A2(
 		rundis$elm_bootstrap$Bootstrap$Grid$container,
 		_List_fromArray(

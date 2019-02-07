@@ -144,8 +144,8 @@ init _ =
         --, FormField "Student Number" 6 8 "C123456" Chars
         --, FormField "Main Subject" 4 80 "Sonology" Chars
         --, FormField "Supervisors" 6 120 "Supervisor1 Supervisor2" Chars
-        --, FormField "Title" 4 200 "My fantastic title yay" Chars 
-        --, FormField "Research Question" 6 200 "Research question" Chars 
+        --, FormField "Title" 4 200 "My fantastic title yay" Chars
+        --, FormField "Research Question" 6 200 "Research question" Chars
         --, FormField "Summary" 150 250 "A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish." Words
         --, FormField "Short Bio" 50 100 "A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is not a fish.A fish is n" Words
         [ makeField "Student Name" 4 80 Chars
@@ -157,7 +157,7 @@ init _ =
         , makeField "Summary" 125 250 Words
         , makeField "Short Bio" 50 100 Words
         ]
-    , showErrors = False   
+    , showErrors = False
     , ready = False
     , submitted = False
     , result = "you need to fill in all fields correctly before you can submit"
@@ -176,9 +176,9 @@ type Msg
 
 submitAll : Model -> Cmd Msg
 submitAll model =
-    let 
+    let
         json = encodeFields model.fields
-    in 
+    in
         Http.post {
             url = "submit_kc_form.php"
             , body = Http.jsonBody json
@@ -187,7 +187,7 @@ submitAll model =
 
 submitAsRequest : Model -> Cmd Msg
 submitAsRequest model =
-    let 
+    let
         json = encodeFields model.fields
     in
         Http.request
@@ -198,7 +198,7 @@ submitAsRequest model =
                 , expect = Http.expectString SubmitResult
                 , timeout = Nothing
                 , tracker = Nothing }
-            
+
 encodeFields : List FormField -> Encode.Value
 encodeFields fields =
     Encode.object <| List.map encodeField fields
@@ -230,7 +230,7 @@ onlyWordFields fields =
             Chars -> False
     ) fields
 
-isValid : FormField -> Bool 
+isValid : FormField -> Bool
 isValid field =
     case field.validity of
         Valid -> True
@@ -242,7 +242,7 @@ validateModel : Model -> Model
 validateModel model =
     { model
         | ready = model.fields |> List.all isValid
-                    
+
         , showErrors = not (model.fields |> onlyWordFields |> List.all isValid)
     }
 
@@ -254,8 +254,8 @@ update msg model =
             (validateModel { model | fields = updateFieldList model.fields fieldName text }, Cmd.none)
 
         Submit ->
-            let 
-                command = 
+            let
+                command =
                     if model.ready then
                         submitAsRequest model
                     else
@@ -263,16 +263,16 @@ update msg model =
             in
             (validateModel { model | showErrors = True }, command)
 
-        SubmitResult result -> 
+        SubmitResult result ->
             case result of
-                Ok message -> 
+                Ok message ->
                     ({ model | submitted = True, result = "Thank you!" }, Cmd.none)
-                
+
                 Err httpError ->
                     case httpError of
-                        Http.BadUrl url -> 
+                        Http.BadUrl url ->
                             ({ model | result = "badurl -> contact Casper" ++ url }, Cmd.none)
-                        
+
                         Http.Timeout ->
                             ({ model | result = "timeout -> contact Casper" }, Cmd.none)
 
@@ -292,14 +292,14 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    let 
-        statusText = 
-            if (not model.ready) then 
-                model.result 
+    let
+        statusText =
+            if (not model.ready) then
+                model.result
             else if model.submitted then
-                "Your abstract has been received, thank you!" 
+                "Your abstract has been received, thank you!"
             else "All good, please submit"
-    in 
+    in
         Grid.container [style "margin-top" "100px"]
             [ CDN.stylesheet -- creates an inline style node with the Bootstrap CSS
             , Grid.row []
@@ -315,7 +315,7 @@ view model =
 formToInput : Bool -> FormField -> Html Msg
 formToInput showErrors field =
     let validity = if showErrors then (viewValidity field) else empty -- only show errors once tried to submit
-    in 
+    in
         case field.contentType of
             Chars ->
                 viewInput field.name field.content (UpdateField field.name) validity
@@ -366,9 +366,9 @@ viewInput placeholder value toMsg errorInfo =
 
 viewTextarea : String -> String -> (String -> msg) -> Html msg -> Html msg
 viewTextarea placeholder value toMsg errorInfo =
-    let 
-        id = 
-            makeLabelName placeholder 
+    let
+        id =
+            makeLabelName placeholder
     in
     Form.group []
     [ Form.label [for id] [text placeholder]
@@ -404,8 +404,3 @@ buttonStyleReady =
 empty : Html msg
 empty =
     text ""
-
-
-
-
-

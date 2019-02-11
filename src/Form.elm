@@ -56,6 +56,19 @@ type alias FormField =
     , validity : Validity
     }
 
+createMinValidator : Int -> (String -> Validity) 
+createMinValidator min = 
+    (\string -> 
+        let 
+            n = String.length string
+        in
+            if n < min then 
+                TooShort n min
+            else
+                Valid)
+
+
+
 
 makeField : String -> Int -> Int -> ContentType -> FormField
 makeField name min max contentType =
@@ -118,23 +131,29 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
-
 viewValidity : FormField -> Html Msg
 viewValidity field =
-    case field.validity of
-        Pristine ->
-            div [] []
-        Empty ->
-            Alert.simpleWarning [] [ text "this field is required" ]
+    let 
+        contentType = case field.contentType of
+            Chars -> "character"
 
-        TooShort n min ->
-            Alert.simpleWarning [] [ text (field.name ++ "too short, current count " ++ String.fromInt n ++ ", minimum is " ++ (String.fromInt min)) ]
+            Words -> "word"
+    
+    in 
+        case field.validity of
+            Pristine ->
+                div [] []
+            Empty ->
+                Alert.simpleWarning [] [ text "this field is required" ]
 
-        TooLong n max->
-            Alert.simpleWarning [] [ text (field.name ++ "too long, current count " ++ String.fromInt n ++ ", maximum is " ++ String.fromInt max) ]
+            TooShort n min ->
+                Alert.simpleWarning [] [ text (field.name ++ " too short, current " ++ contentType ++ " count " ++ String.fromInt n ++ ", minimum is " ++ (String.fromInt min)) ]
 
-        Valid ->
-            Alert.simpleSuccess [] [ text "ok" ]
+            TooLong n max->
+                Alert.simpleWarning [] [ text (field.name ++ " too long, current "  ++ contentType ++ " count " ++ String.fromInt n ++ ", maximum is " ++ String.fromInt max) ]
+
+            Valid ->
+                Alert.simpleSuccess [] [ text "ok" ]
 
 
 init : () -> ( Model, Cmd Msg )
@@ -152,8 +171,8 @@ init _ =
         , makeField "Student Number" 6 8 Chars
         , makeField "Main Subject" 4 80 Chars
         , makeField "Supervisors" 6 120 Chars
-        , makeField "Title" 4 120 Chars
-        , makeField "Research Question" 6 150 Chars
+        , makeField "Title" 5 1000 Chars
+        , makeField "Research Question" 5 1000 Chars
         , makeField "Summary" 125 250 Words
         , makeField "Short Bio" 50 100 Words
         ]
@@ -242,7 +261,6 @@ validateModel : Model -> Model
 validateModel model =
     { model
         | ready = model.fields |> List.all isValid
-
         , showErrors = not (model.fields |> onlyWordFields |> List.all isValid)
     }
 

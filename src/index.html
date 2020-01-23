@@ -5312,7 +5312,7 @@ var $author$project$Form$init = function (_v0) {
 					A4($author$project$Form$makeField, 'Short Bio', 50, 100, $author$project$Form$Words)
 				]),
 			ready: false,
-			result: 'Please fill in all fields before submitting. The \"show problems\" button will highlight the fields that are missing or incorrect.',
+			result: 'you need to fill in all fields correctly before you can submit',
 			showErrors: false,
 			submitted: false
 		},
@@ -6270,11 +6270,39 @@ var $author$project$Form$isValid = function (field) {
 		return false;
 	}
 };
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $author$project$Form$onlyWordFields = function (fields) {
+	return A2(
+		$elm$core$List$filter,
+		function (field) {
+			var _v0 = field.contentType;
+			if (_v0.$ === 'Words') {
+				return true;
+			} else {
+				return false;
+			}
+		},
+		fields);
+};
 var $author$project$Form$validateModel = function (model) {
 	return _Utils_update(
 		model,
 		{
-			ready: A2($elm$core$List$all, $author$project$Form$isValid, model.fields)
+			ready: A2($elm$core$List$all, $author$project$Form$isValid, model.fields),
+			showErrors: !A2(
+				$elm$core$List$all,
+				$author$project$Form$isValid,
+				$author$project$Form$onlyWordFields(model.fields))
 		});
 };
 var $author$project$Form$update = F2(
@@ -6299,13 +6327,6 @@ var $author$project$Form$update = F2(
 							model,
 							{showErrors: true})),
 					command);
-			case 'ShowErrors':
-				return _Utils_Tuple2(
-					$author$project$Form$validateModel(
-						_Utils_update(
-							model,
-							{showErrors: true})),
-					$elm$core$Platform$Cmd$none);
 			case 'SubmitResult':
 				var result = msg.a;
 				if (result.$ === 'Ok') {
@@ -6388,27 +6409,6 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$container = F2(
 				attributes),
 			children);
 	});
-var $elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
-};
-var $elm$virtual_dom$VirtualDom$node = function (tag) {
-	return _VirtualDom_node(
-		_VirtualDom_noScript(tag));
-};
-var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
-var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
-var $author$project$Form$localStyles = A3(
-	$elm$html$Html$node,
-	'link',
-	_List_fromArray(
-		[
-			$elm$html$Html$Attributes$rel('stylesheet'),
-			$elm$html$Html$Attributes$href('styles.css')
-		]),
-	_List_Nil);
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$Col = {$: 'Col'};
 var $rundis$elm_bootstrap$Bootstrap$Grid$Internal$Width = F2(
@@ -7236,6 +7236,18 @@ var $rundis$elm_bootstrap$Bootstrap$Grid$row = F2(
 	});
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
+var $elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
+var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
 var $rundis$elm_bootstrap$Bootstrap$CDN$stylesheet = A3(
 	$elm$html$Html$node,
 	'link',
@@ -7247,7 +7259,6 @@ var $rundis$elm_bootstrap$Bootstrap$CDN$stylesheet = A3(
 	_List_Nil);
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Form$ShowErrors = {$: 'ShowErrors'};
 var $author$project$Form$Submit = {$: 'Submit'};
 var $elm$core$List$append = F2(
 	function (xs, ys) {
@@ -7257,12 +7268,6 @@ var $elm$core$List$append = F2(
 			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
 		}
 	});
-var $rundis$elm_bootstrap$Bootstrap$Internal$Button$Attrs = function (a) {
-	return {$: 'Attrs', a: a};
-};
-var $rundis$elm_bootstrap$Bootstrap$Button$attrs = function (attrs_) {
-	return $rundis$elm_bootstrap$Bootstrap$Internal$Button$Attrs(attrs_);
-};
 var $elm$html$Html$br = _VirtualDom_node('br');
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$core$Maybe$andThen = F2(
@@ -7308,17 +7313,6 @@ var $rundis$elm_bootstrap$Bootstrap$Internal$Button$applyModifier = F2(
 						attributes: _Utils_ap(options.attributes, attrs)
 					});
 		}
-	});
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
 	});
 var $elm$core$Tuple$second = function (_v0) {
 	var y = _v0.b;
@@ -7425,6 +7419,12 @@ var $rundis$elm_bootstrap$Bootstrap$Button$button = F2(
 			$rundis$elm_bootstrap$Bootstrap$Internal$Button$buttonAttributes(options),
 			children);
 	});
+var $rundis$elm_bootstrap$Bootstrap$Internal$Button$Disabled = function (a) {
+	return {$: 'Disabled', a: a};
+};
+var $rundis$elm_bootstrap$Bootstrap$Button$disabled = function (disabled_) {
+	return $rundis$elm_bootstrap$Bootstrap$Internal$Button$Disabled(disabled_);
+};
 var $elm$html$Html$form = _VirtualDom_node('form');
 var $rundis$elm_bootstrap$Bootstrap$Form$form = F2(
 	function (attributes, children) {
@@ -7747,10 +7747,7 @@ var $author$project$Form$viewInput = F6(
 		}();
 		var counterText = A2(
 			$elm$html$Html$span,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class('char-counter')
-				]),
+			_List_Nil,
 			_List_fromArray(
 				[
 					$elm$html$Html$text(counter)
@@ -7778,7 +7775,7 @@ var $author$project$Form$viewInput = F6(
 							$rundis$elm_bootstrap$Bootstrap$Form$Input$value(value),
 							$rundis$elm_bootstrap$Bootstrap$Form$Input$onInput(toMsg)
 						])),
-					showHelper ? counterText : A2($elm$html$Html$span, _List_Nil, _List_Nil),
+					counterText,
 					errorInfo
 				]));
 	});
@@ -7922,10 +7919,6 @@ var $author$project$Form$viewTextarea = F6(
 					var current = validity.a;
 					var desired = validity.b;
 					return $elm$core$String$fromInt(current - desired) + ' too many';
-				case 'TooShort':
-					var current = validity.a;
-					var desired = validity.b;
-					return $elm$core$String$fromInt(current) + (' words, need more (' + ($elm$core$String$fromInt(desired) + ')'));
 				default:
 					return '';
 			}
@@ -8187,62 +8180,57 @@ var $rundis$elm_bootstrap$Bootstrap$Alert$simple = F3(
 					A2($rundis$elm_bootstrap$Bootstrap$Alert$role, role_, $rundis$elm_bootstrap$Bootstrap$Alert$config))));
 	});
 var $rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning = $rundis$elm_bootstrap$Bootstrap$Alert$simple($rundis$elm_bootstrap$Bootstrap$Internal$Role$Warning);
-var $author$project$Form$viewValidity = function (field) {
-	var contentType = function () {
-		var _v1 = field.contentType;
-		if (_v1.$ === 'Chars') {
-			return 'character';
-		} else {
-			return 'word';
+var $author$project$Form$viewValidity = F2(
+	function (showMinimumError, field) {
+		var contentType = function () {
+			var _v1 = field.contentType;
+			if (_v1.$ === 'Chars') {
+				return 'character';
+			} else {
+				return 'word';
+			}
+		}();
+		var _v0 = field.validity;
+		switch (_v0.$) {
+			case 'Pristine':
+				return A2($elm$html$Html$div, _List_Nil, _List_Nil);
+			case 'Empty':
+				return A2(
+					$rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text('this field is required')
+						]));
+			case 'TooShort':
+				var n = _v0.a;
+				var min = _v0.b;
+				return showMinimumError ? A2(
+					$rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							field.name + (' too short, current ' + (contentType + (' count ' + ($elm$core$String$fromInt(n) + (', minimum is ' + $elm$core$String$fromInt(min)))))))
+						])) : A2($elm$html$Html$span, _List_Nil, _List_Nil);
+			case 'TooLong':
+				var n = _v0.a;
+				var max = _v0.b;
+				return A2(
+					$rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							field.name + (' too long, current ' + (contentType + (' count ' + ($elm$core$String$fromInt(n) + (', maximum is ' + $elm$core$String$fromInt(max)))))))
+						]));
+			default:
+				return A2($elm$html$Html$span, _List_Nil, _List_Nil);
 		}
-	}();
-	var _v0 = field.validity;
-	switch (_v0.$) {
-		case 'Pristine':
-			return A2(
-				$rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('this field is required')
-					]));
-		case 'Empty':
-			return A2(
-				$rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('this field is required')
-					]));
-		case 'TooShort':
-			var n = _v0.a;
-			var min = _v0.b;
-			return A2(
-				$rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text(
-						field.name + (' too short, current ' + (contentType + (' count ' + ($elm$core$String$fromInt(n) + (', minimum is ' + $elm$core$String$fromInt(min)))))))
-					]));
-		case 'TooLong':
-			var n = _v0.a;
-			var max = _v0.b;
-			return A2(
-				$rundis$elm_bootstrap$Bootstrap$Alert$simpleWarning,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text(
-						field.name + (' too long, current ' + (contentType + (' count ' + ($elm$core$String$fromInt(n) + (', maximum is ' + $elm$core$String$fromInt(max)))))))
-					]));
-		default:
-			return A2($elm$html$Html$span, _List_Nil, _List_Nil);
-	}
-};
-var $author$project$Form$formToInput = F2(
-	function (showErrors, field) {
-		var validity = showErrors ? $author$project$Form$viewValidity(field) : $author$project$Form$empty;
+	});
+var $author$project$Form$formToInput = F3(
+	function (showMinimum, showErrors, field) {
+		var validity = showErrors ? A2($author$project$Form$viewValidity, showMinimum, field) : $author$project$Form$empty;
 		var _v0 = field.contentType;
 		if (_v0.$ === 'Chars') {
 			return A6(
@@ -8265,7 +8253,12 @@ var $author$project$Form$formToInput = F2(
 		}
 	});
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $rundis$elm_bootstrap$Bootstrap$Utilities$Spacing$ml1 = $elm$html$Html$Attributes$class('ml-1');
+var $rundis$elm_bootstrap$Bootstrap$Internal$Button$Attrs = function (a) {
+	return {$: 'Attrs', a: a};
+};
+var $rundis$elm_bootstrap$Bootstrap$Button$attrs = function (attrs_) {
+	return $rundis$elm_bootstrap$Bootstrap$Internal$Button$Attrs(attrs_);
+};
 var $elm$virtual_dom$VirtualDom$MayPreventDefault = function (a) {
 	return {$: 'MayPreventDefault', a: a};
 };
@@ -8296,9 +8289,9 @@ var $rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled = function (a) {
 };
 var $rundis$elm_bootstrap$Bootstrap$Button$primary = $rundis$elm_bootstrap$Bootstrap$Internal$Button$Coloring(
 	$rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled($rundis$elm_bootstrap$Bootstrap$Internal$Button$Primary));
-var $rundis$elm_bootstrap$Bootstrap$Internal$Button$Warning = {$: 'Warning'};
-var $rundis$elm_bootstrap$Bootstrap$Button$warning = $rundis$elm_bootstrap$Bootstrap$Internal$Button$Coloring(
-	$rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled($rundis$elm_bootstrap$Bootstrap$Internal$Button$Warning));
+var $rundis$elm_bootstrap$Bootstrap$Internal$Button$Secondary = {$: 'Secondary'};
+var $rundis$elm_bootstrap$Bootstrap$Button$secondary = $rundis$elm_bootstrap$Bootstrap$Internal$Button$Coloring(
+	$rundis$elm_bootstrap$Bootstrap$Internal$Button$Roled($rundis$elm_bootstrap$Bootstrap$Internal$Button$Secondary));
 var $author$project$Form$viewForm = function (model) {
 	return A2(
 		$rundis$elm_bootstrap$Bootstrap$Form$form,
@@ -8319,30 +8312,18 @@ var $author$project$Form$viewForm = function (model) {
 				$elm$core$List$append,
 				A2(
 					$elm$core$List$map,
-					$author$project$Form$formToInput(model.showErrors),
+					A2($author$project$Form$formToInput, model.submitted, model.showErrors),
 					model.fields),
 				_List_fromArray(
 					[
 						A2($elm$html$Html$br, _List_Nil, _List_Nil),
-						(!model.ready) ? A2(
+						A2(
 						$rundis$elm_bootstrap$Bootstrap$Button$button,
 						_List_fromArray(
 							[
-								$rundis$elm_bootstrap$Bootstrap$Button$attrs(
-								_List_fromArray(
-									[$rundis$elm_bootstrap$Bootstrap$Utilities$Spacing$ml1])),
-								$rundis$elm_bootstrap$Bootstrap$Button$warning,
-								$rundis$elm_bootstrap$Bootstrap$Button$onClick($author$project$Form$ShowErrors)
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('show problems !')
-							])) : A2(
-						$rundis$elm_bootstrap$Bootstrap$Button$button,
-						_List_fromArray(
-							[
-								$rundis$elm_bootstrap$Bootstrap$Button$primary,
-								$rundis$elm_bootstrap$Bootstrap$Button$onClick($author$project$Form$Submit)
+								model.ready ? $rundis$elm_bootstrap$Bootstrap$Button$primary : $rundis$elm_bootstrap$Bootstrap$Button$secondary,
+								$rundis$elm_bootstrap$Bootstrap$Button$onClick($author$project$Form$Submit),
+								$rundis$elm_bootstrap$Bootstrap$Button$disabled(model.submitted || (!model.ready))
 							]),
 						_List_fromArray(
 							[
@@ -8360,7 +8341,6 @@ var $author$project$Form$view = function (model) {
 			]),
 		_List_fromArray(
 			[
-				$author$project$Form$localStyles,
 				$rundis$elm_bootstrap$Bootstrap$CDN$stylesheet,
 				A2(
 				$rundis$elm_bootstrap$Bootstrap$Grid$row,
